@@ -1,0 +1,38 @@
+     1                                  bits 32 ;assembling for the 32 bits architecture
+     2                                  global start 
+     3                                  ; we ask the assembler to give global visibility to the symbol called start
+     4                                  ;(the start label will be the entry point in the program)
+     5                                  extern exit ; we inform the assembler that the exit symbol is foreign; it exists even if we won't be
+     6                                  import exit msvcrt.dll ; we specify the external library that defines the symbol
+     7                                   ; msvcrt.dll contains exit, printf and all the other important C-runtime functions
+     8                                  ; our variables are declared here (the segment is called data)
+     9                                  segment data use32 class=data
+    10 00000000 D204                     a dw 1234      
+    11 00000002 0C                       b db 12         
+    12 00000003 2E16                     c dw 5678      
+    13 00000005 38                       d db 56 
+    14 00000006 00000000                 R dd 0 
+    15                                  ; ...
+    16                                  ; the program code will be part of a segment called code
+    17                                  segment code use32 class=code
+    18                                  start:
+    19                                  ;c + 3 + d - (b - a)
+    20                                  
+    21 00000000 66A1[03000000]          mov ax,[c]    ; ax=c
+    22 00000006 6683C003                add ax,3 ;ax=3+c
+    23 0000000A 660FB61D[05000000]      movzx bx,[d]   ; we complete the byte d with zeros on the left side to make it a word
+    24 00000012 6601C3                  add bx,ax  ;bx=3+c+d
+    25 00000015 660FB605[02000000]      movzx ax,[b]  ;we complete the byte b with zeros on the left side to make it a word
+    26 0000001D 662B05[00000000]        sub ax,word[a]  ;ax=b-a
+    27 00000024 6629C3                  sub bx,ax         ;bx=c + 3 + d - (b - a)
+    28 00000027 0FB7C3                  movzx eax,bx      ;eax=c + 3 + d - (b - a)
+    29 0000002A A3[06000000]            mov [R],eax
+    30                                  
+    31                                  
+    32                                  
+    33                                   
+    34                                  ; ...
+    35                                  ;here we will write the instructions to solve the problem
+    36                                   ; call exit(0) ), 0 represents status code: SUCCESS
+    37 0000002F 6A00                     push dword 0 ; saves on stack the parameter of the function exit
+    38 00000031 FF15[00000000]           call [exit] ; function exit is called in order to end the execution of the program
